@@ -24,7 +24,7 @@ mongoose.connect(url)
       type: Number,
       required: true,
       min: 1, // Minimum mood value
-      max: 5, // Maximum mood value
+      max: 3, // Maximum mood value
     },
     activities: [
       {

@@ -42,6 +42,27 @@ app.get("/api/days", (request, response) => {
   });
 });
 
+
+// API route to get activities from the most recent day
+app.get('/api/days/prev-activities', async (req, res) => {
+  try {
+    // Find the most recent day based on the 'date' field
+    const mostRecentDay = await daysModel.findOne().sort({ date: -1 });
+
+    if (!mostRecentDay) {
+      return res.status(404).json({ message: 'No recent day found' });
+    }
+
+    // Extract activities from the most recent day
+    const activities = mostRecentDay.activities.map(activity => activity.name);
+
+    res.status(200).json(activities);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // create days route
 app.post("/api/days", jsonParser, (request, response) => {
   console.log("Received POST request:", request.body);

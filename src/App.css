@@ -42,3 +42,18 @@
 .read-the-docs {
   color: #888;
 } */
+
+.custom-spin {
+  animation: rock 3s ease-in-out infinite;
+  transform-origin: center; /* Set the transformation origin to the center */
+  transform: rotate(-20deg); /* Initial position (upright) */
+}
+
+@keyframes rock {
+  0%, 100% {
+    transform: rotate(0deg); /* Start and end positions (upright) */
+  }
+  50% {
+    transform: rotate(10deg); /* Rock to the right (clockwise) */
+  }
+}
