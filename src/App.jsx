@@ -7,13 +7,10 @@ import { googleLogout } from "@react-oauth/google";
 import ToggleableButton from "./components/ToggableButton";
 
 function App() {
+  // ---------------- User mistakes ----------------------
 
-
-    // ---------------- User mistakes ----------------------
-
-    const [noMood, setNoMood] = useState(false);
-    const [noActivity, setNoActivity] = useState(false);
-
+  const [noMood, setNoMood] = useState(false);
+  const [noActivity, setNoActivity] = useState(false);
 
   // ---------------- MOOD ----------------------
   const moods = [
@@ -24,7 +21,7 @@ function App() {
   const [selectedMood, setSelectedMood] = useState(null);
   const handleMoodSelect = (mood) => {
     setSelectedMood(mood.value);
-    setNoMood(false)
+    setNoMood(false);
   };
 
   // ---------------- Activies ----------------------
@@ -56,9 +53,9 @@ function App() {
 
   const handleActivitySelect = (activity) => {
     setNoActivity(false);
-    console.log("the activity is", activity);
+    // console.log("the activity is", activity);
     setSelectedActivities((prevActivities) => {
-      console.log("the prev activities are:", prevActivities);
+      // console.log("the prev activities are:", prevActivities);
       const updatedActivities = { ...prevActivities };
       updatedActivities[activity] = !updatedActivities[activity];
       return updatedActivities;
@@ -67,6 +64,8 @@ function App() {
 
   // ---------------- Edit Activities ----------------------
 
+  // toggle editing
+
   const [editToggle, setEditToggle] = useState(false);
 
   const onEditToggle = () => {
@@ -74,58 +73,108 @@ function App() {
     setSelectedActivities([]);
   };
 
+  // delete activity
+
+  const handleDeleteActivity = (activity) => {
+    console.log("This was pressed", activity);
+    console.log("old activity list", activities);
+    if (activities.includes(activity)) {
+      const updatedActivities = activities.filter(
+        (eachActivity) => activity !== eachActivity
+      );
+      setActivities(updatedActivities);
+      console.log("new activity list", activities);
+    } else {
+      // Handle the case when the activity is not found
+      console.log(`${activity} not found in activities.`);
+    }
+  };
+
+  // add activity
+
+  const [inputValue, setInputValue] = useState('');
+
+  const handleNewActivity = () => {
+    const newActivities = [...activities, inputValue];
+    setActivities(newActivities);
+    setInputValue('');
+  
+    console.log("Activities are", newActivities);
+    console.log("Input is", inputValue);
+  }
+
+
+// enter key adds activity
+  const handleEnterKey = (event) => {
+    if (event.key === 'Enter') {
+      // Call your function here when Enter is pressed
+      handleNewActivity();
+    }
+  };
+
+ // save changes
+
+ const handleSave = () => {
+  if (inputValue === '') {
+    setEditToggle(false);
+    
+  }
+
+  else {
+    handleNewActivity();
+    setEditToggle(false);
+    
+  }
+
+ }
+
+
+
   // ---------------- Form Submission ----------------------
 
   const handleSubmit = () => {
-    const hasCompletedActivity = Object.values(selectedActivities).some(activity => activity === true);
-    console.log("our new func", hasCompletedActivity)
+    const hasCompletedActivity = Object.values(selectedActivities).some(
+      (activity) => activity === true
+    );
+    console.log("our new func", hasCompletedActivity);
 
     // Check for user errors
 
     if (selectedMood === null && hasCompletedActivity === false) {
       setNoMood(true);
       setNoActivity(true);
-    }
-
-    else if (selectedMood === null) {
-    setNoMood(true);
-
-    }
-    else if (hasCompletedActivity === false) {
+    } else if (selectedMood === null) {
+      setNoMood(true);
+    } else if (hasCompletedActivity === false) {
       setNoActivity(true);
-      }
+    } else {
+      // Get an array of selected activities based on the keys of the object
+      const selectedActivityNames = Object.keys(selectedActivities);
 
-    else {
-    
-    
+      // Map the selected activities to the activities array with completed status
+      const newActivities = activities.map((activity) => ({
+        name: activity,
+        completed: selectedActivityNames.includes(activity), // Check if it's selected
+      }));
 
+      const newDay = {
+        moodValue: selectedMood,
+        activities: newActivities,
+      };
 
-    // Get an array of selected activities based on the keys of the object
-    const selectedActivityNames = Object.keys(selectedActivities);
+      axios
+        .post("/api/days", newDay)
+        .then((response) => {
+          console.log("Day created successfully:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error creating day:", error);
+        });
 
-    // Map the selected activities to the activities array with completed status
-    const newActivities = activities.map((activity) => ({
-      name: activity,
-      completed: selectedActivityNames.includes(activity), // Check if it's selected
-    }));
-
-    const newDay = {
-      moodValue: selectedMood,
-      activities: newActivities,
-    };
-
-    axios
-      .post("/api/days", newDay)
-      .then((response) => {
-        console.log("Day created successfully:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error creating day:", error);
-      });
-
-    setSelectedActivities([]);
-    setSelectedMood(null);
-  }};
+      setSelectedActivities([]);
+      setSelectedMood(null);
+    }
+  };
 
   // ------------------------------------------------------------------------
   // -------------------------------HTML STUFFz-----------------------------------------
@@ -223,25 +272,25 @@ function App() {
                 What did you do today?
               </h3>
               {noActivity && (
-              <div className="flex justify-start pb-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="red"
-                  class="w-6 h-6"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
+                <div className="flex justify-start pb-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="red"
+                    class="w-6 h-6"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
 
-                <p className="text-red-500 text-sm pb-2">
-                  You need to select what you did today pal...
-                </p>
-              </div>
-            )}
+                  <p className="text-red-500 text-sm pb-2">
+                    You need to select what you did today pal...
+                  </p>
+                </div>
+              )}
               <div className="justify-end flex my-2">
                 <button onClick={onEditToggle}>
                   <svg
@@ -249,7 +298,9 @@ function App() {
                     viewBox="0 0 24 24"
                     fill="currentColor"
                     className={`w-6 h-6 ${
-                      editToggle ? "opacity-100" : "opacity-50"
+                      editToggle
+                        ? "opacity-100 text-red-600  animate-pulse"
+                        : "opacity-50"
                     }`}
                   >
                     <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32l8.4-8.4z" />
@@ -261,6 +312,7 @@ function App() {
               <div className="space-x-2">
                 {activities.map((activity) => (
                   <ToggleableButton
+                    deleteActivity={() => handleDeleteActivity(activity)}
                     key={activity}
                     label={activity}
                     isSelected={selectedActivities[activity]}
@@ -271,19 +323,76 @@ function App() {
               </div>
             </div>
 
-            {/* ---------------------- Button Event  ---------------------- */}
+            {/* ---------------------- Editing Input + Button (Hidden by default)  ---------------------- */}
+
+            {editToggle && (
+              <div>
+                <div className="relative w-full px-[1rem] pb-8">
+                  <input
+                    type="text"
+                    className="w-full py-2 pr-10 pl-4 text-black bg-white border border-gray-300 rounded-sm focus:outline-none focus:border-blue-500"
+                    placeholder="My new activity"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onSubmit={handleNewActivity}
+                    onKeyDown={handleEnterKey}
+                  />
+                  <button onClick={handleNewActivity}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 text-black cursor-pointer mr-3 mt-[-1rem]"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  </button>
+                </div>
+
+                {/* <div className="flex justify-between pb-8">
+                  <div className="px-[0.5rem]"></div>
+                  <button className="bg-red-600  animate-pulse hover:bg-gray-400 text-white py-3 w-full px-full px-[2rem] rounded-sm">
+                    Save activities
+                  </button>
+                  <div className="px-[0.5rem]"></div>
+                </div> */}
+              </div>
+            )}
+
+            {/* ---------------------- Submit Button  ---------------------- */}
           </div>
           <div className="my-4 text-center">
             <div className="flex justify-between">
               <div className="px-[2rem]"></div>
 
+              {editToggle ? 
+
+                <button
+                onClick={handleSave}
+                className="bg-red-600  animate-pulse hover:bg-gray-400 text-white py-3 w-full px-full px-[2rem] rounded-sm">
+                    Save changes
+                  </button>
+              
+              
+              
+              :
+
               <button
                 onClick={handleSubmit}
-                Ac
                 className="bg-black hover:bg-gray-400 text-white py-3 w-full px-full px-[2rem] rounded-sm"
               >
                 Submit
               </button>
+              
+              
+              
+              }
+
+
               <div className="px-[2rem]"></div>
             </div>
           </div>
